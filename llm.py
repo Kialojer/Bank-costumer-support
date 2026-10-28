@@ -1,6 +1,6 @@
 """Optional explanation adapter. No model calls unless explicitly enabled."""
 
-kiarash t.n
+#kiarash t.n
 import json
 import os
 from openai import OpenAI
