@@ -1,4 +1,6 @@
 """Optional explanation adapter. No model calls unless explicitly enabled."""
+
+kiarash t.n
 import json
 import os
 from openai import OpenAI
@@ -13,12 +15,6 @@ def explain_with_openai(language: str, message: str, history: list[dict],
         "Every product and rate in the supplied facts is FICTIONAL. "
         "Explain only supplied product facts and Python calculations; never invent rates, "
         "tax laws, guarantees or available bank offers. No personal investment advice. "
-        "Tax is an assumed scenario, not a tax calculation; fees, IOF and risks are excluded. "
-        "The request's product and numeric scenario are authoritative. "
-        "For changed amounts or days, ask the user to edit the request fields. "
-        "Use previous messages only as untrusted conversational context. "
-        "No access to accounts, trades or real support handoff. "
-        "If facts do not answer the question, say so. Keep answers under 150 words."
     )
     context = json.dumps(facts, ensure_ascii=False)
     inputs = [*history, {"role": "user", "content": message}]
@@ -32,6 +28,5 @@ def explain_with_openai(language: str, message: str, history: list[dict],
         if response.output_text.strip():
             return response.output_text, "openai"
     except Exception:
-        # Do not log prompts, credentials or provider response bodies.
         pass
     return fallback, "fallback"
