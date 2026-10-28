@@ -1,7 +1,7 @@
 """Small LangGraph workflow in the style of the telecom portfolio."""
 
-kiarash torabi .n 
-28/10/2026
+#kiarash torabi .n 
+#28/10/2026
 from typing import Literal, TypedDict
 from unicodedata import combining, normalize
 from langgraph.graph import END, START, StateGraph
@@ -94,7 +94,6 @@ def optional_explanation(state: AgentState) -> dict:
         request.message, [m.model_dump() for m in request.history], facts, state["reply"])
     return {"reply": reply, "mode": mode}
 
-# ۴. مسیرها مشخص‌اند؛ دیتابیس و ذخیره تاریخچه نداریم.
 def build_graph():
     builder = StateGraph(AgentState)
     builder.add_node("classify", classify)
