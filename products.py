@@ -1,10 +1,8 @@
-"""Fictional products and a deterministic calculator; no bank API."""
+"""calculator; no bank API."""
 import math
 from typing import Literal
 from pydantic import BaseModel, ConfigDict, Field
-
 ProductId = Literal["demo-cdb", "demo-lci", "demo-lca"]
-
 class Product(BaseModel):
     model_config = ConfigDict(frozen=True)
     id: ProductId
@@ -45,9 +43,7 @@ class Simulation(BaseModel):
     assumed_tax_rate: float
     matches_filters: bool
     reasons: list[str]
-    estimated_net_total: float | None
-
-# محاسبات پول با Python انجام می‌شود؛ مالیات فقط فرض ورودی است.
+    estimated_net_total: float 
 def simulate(product: Product, scenario: Scenario) -> Simulation:
     reasons = []
     if scenario.amount < product.minimum:
