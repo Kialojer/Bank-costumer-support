@@ -1,18 +1,17 @@
 """Small LangGraph workflow in the style of the telecom portfolio."""
+
+kiarash torabi .n 
+28/10/2026
 from typing import Literal, TypedDict
 from unicodedata import combining, normalize
-
 from langgraph.graph import END, START, StateGraph
 from pydantic import BaseModel, ConfigDict, Field
-
 from products import PRODUCTS, ProductId, Scenario, Simulation, simulate
 
-# ۱. ورودی معتبر و وضعیت موقت گراف
 class Message(BaseModel):
     model_config = ConfigDict(extra="forbid")
     role: Literal["user", "assistant"]
     content: str = Field(min_length=1, max_length=2000, pattern=r"\S")
-
 class DemoMessage(BaseModel):
     model_config = ConfigDict(extra="forbid")
     message: str = Field(min_length=1, max_length=1500, pattern=r"\S")
@@ -25,29 +24,26 @@ class AgentState(TypedDict, total=False):
     request: DemoMessage
     intent: Literal["support", "simulate", "explain", "greeting"]
     reply: str
-    simulation: Simulation | None
+    simulation: Simulation
     handoff: bool
-    queue: str | None
+    queue: str
     use_llm: bool
     mode: Literal["demo", "openai", "fallback"]
 
 def normalized(text: str) -> str:
     return "".join(c for c in normalize("NFKD", text.casefold()) if not combining(c))
 
-# ۲. تشخیص ساده و قابل توضیح؛ این بخش LLM نیست.
 def classify(state: AgentState) -> dict:
     text = normalized(state["request"].message)
     if any(word in text for word in ("atendente", "humano", "human", "support", "fraude", "fraud")):
         intent = "support"
-    elif any(word in text for word in ("simul", "quanto", "render", "rende", "calculate", "how much", "return")):
+    elif any(word in text for word in ("simul", "quanto", "render")):
         intent = "simulate"
     elif text.strip(" !?.") in ("oi", "ola", "hello", "hi"):
         intent = "greeting"
     else:
         intent = "explain"
     return {"intent": intent}
-
-# ۳. هر نود فقط مسئول کار خودش است.
 def support(state: AgentState) -> dict:
     pt = state["request"].language == "pt-BR"
     reply = ("Demonstracao: procure o canal oficial do seu banco. Nenhuma transferencia foi realizada."
@@ -65,14 +61,9 @@ def explain(state: AgentState) -> dict:
     pt = request.language == "pt-BR"
     description = product.description_pt if pt else product.description_en
     reply = (f"DEMO: {description} Taxa anual ficticia: {product.annual_rate:.1%}. "
-             f"Minimo: R$ {product.minimum:.2f}. Bloqueio: {product.lock_days} dias. "
-             "Para simular, altere scenario no pedido. Nao e recomendacao de investimento."
              if pt else
              f"DEMO: {description} Fictional annual rate: {product.annual_rate:.1%}. "
-             f"Minimum: R$ {product.minimum:.2f}. Lock: {product.lock_days} days. "
-             "To simulate, edit scenario in the request. This is not an investment recommendation.")
     return {"reply": reply}
-
 def simulate_offer(state: AgentState) -> dict:
     request = state["request"]
     result = simulate(PRODUCTS[request.product_id], request.scenario)
@@ -124,9 +115,7 @@ def build_graph():
 graph = build_graph()
 
 def respond(payload: DemoMessage, use_llm: bool = False) -> AgentState:
-    return graph.invoke({"request": payload, "use_llm": use_llm, "mode": "demo",
-                         "handoff": False, "queue": None, "simulation": None})
-
+    return graph.invoke({"request": payload, "use_llm": use_llm, "mode": "demo","handoff": False, "queue": None, "simulation": None})
 if __name__ == "__main__":
     result = respond(DemoMessage(message="Quanto rende?", language="pt-BR"))
     print(result["reply"])
